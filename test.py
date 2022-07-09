@@ -27,7 +27,6 @@ def alt_shift(i):
     print('绑定', win32gui.GetWindowText(win[i]))
 
 def alt(i):
-    print('start', i)
     if(not win.get(i)): 
         return
 
