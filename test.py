@@ -7,7 +7,6 @@ import time
 
 win = {}
 
-
 def getThrottleFn(fn, break_time):
     ref = {'pre_time': 0}
     # print(ref)
@@ -23,11 +22,11 @@ def getThrottleFn(fn, break_time):
         
     return throttleFn
 
-def ctrl_shift(i):
+def alt_shift(i):
     win[i] = win32gui.GetForegroundWindow()
     print('绑定', win32gui.GetWindowText(win[i]))
 
-def ctrl(i):
+def alt(i):
     print('start', i)
     if(not win.get(i)): 
         return
@@ -44,11 +43,11 @@ def ctrl(i):
     print('显示', win32gui.GetWindowText(win[i])) 
 
 
-alt_throttle = getThrottleFn(ctrl,0.1)
+alt_throttle = getThrottleFn(alt,0.1)
 
 for i in range(1, 6):
     keyboard.add_hotkey('alt+'+str(i), alt_throttle, (i,))
-    keyboard.add_hotkey('alt+shift+'+str(i), ctrl_shift, (i,))
+    keyboard.add_hotkey('alt+shift+'+str(i), alt_shift, (i,))
 
 keyboard.wait('alt+shift+q')
 input('Press Enter to exit…')
