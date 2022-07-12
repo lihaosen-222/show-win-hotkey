@@ -6,53 +6,63 @@ from win32com import client
 import time
 import httpx
 import asyncio
+import json
+
+
 
 # 注册异步请求
-async def myrequest():
+async def set_win(win):
     async with httpx.AsyncClient() as client:
-        resp = await client.get(
-            'http://localhost:3000/api/getTodayStatus'
+        resp = await client.post(
+            'http://localhost:3000/api/setWin',
+            data={'win': json.dumps(win)}  # 转 json
         )
         result = resp.text
         print(result)
 loop = asyncio.get_event_loop()
 
-win = {}
+# win 初始化
+win = [None]
+for i in range(1, 6):
+    win.append({'hwnd': '', 'name':''})
 
-def getThrottleFn(fn, break_time):
+# 生成防抖函数
+def get_debounce_fn(fn, break_time):
     ref = {'pre_time': 0}
-    def throttleFn(*a):
+    def debounce_fn(*a):
         now = time.time()
         if now - ref['pre_time'] > break_time:
             fn(*a)
         ref['pre_time'] = now
         
-    return throttleFn
+    return debounce_fn
 
+# alt_shift 回调函数
 def alt_shift(i):
-    win[i] = win32gui.GetForegroundWindow()
-    print('绑定', win32gui.GetWindowText(win[i]))
+    win[i]['hwnd'] = win32gui.GetForegroundWindow()
+    win[i]['name'] = win32gui.GetWindowText(win[i]['hwnd'])
+    print('绑定', win[i]['name'])
 
+# alt 回调函数
 def alt(i):
-    if(not win.get(i)): 
+    if(not win[i]['hwnd']): 
         return
 
-    if win32gui.IsIconic(win[i]):
-        win32gui.ShowWindow(win[i], win32con.SW_SHOWNORMAL) # 最小化的时候显示到最前
+    if win32gui.IsIconic(win[i]['hwnd']):
+        win32gui.ShowWindow(win[i]['hwnd'], win32con.SW_SHOWNORMAL) # 最小化的时候显示到最前
     else:
         # 这四行不加 SetForegroundWindow 会报错，原理我也不知道
-        win32gui.BringWindowToTop(win[i])
+        win32gui.BringWindowToTop(win[i]['hwnd'])
         pythoncom.CoInitialize()
         shell = client.Dispatch("WScript.Shell")
         shell.SendKeys('%')
-        win32gui.SetForegroundWindow(int(win[i])) # 没最小化的时候显示到最前
-    print('显示', win32gui.GetWindowText(win[i]))
+        win32gui.SetForegroundWindow(win[i]['hwnd']) # 没最小化的时候显示到最前
+    print('显示', win[i]['name'] )
 
     # 异步执行请求
-    loop.run_until_complete(myrequest())
+    loop.run_until_complete(set_win(win))
 
-
-alt_throttle = getThrottleFn(alt,0.1)
+alt_throttle = get_debounce_fn(alt,0.1)
 
 for i in range(1, 6):
     keyboard.add_hotkey('alt+'+str(i), alt_throttle, (i,))
