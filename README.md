@@ -16,6 +16,8 @@
 
 
 # 使用
+## 创建虚拟环境
+```virtualenv venv```
 
 ## 安装依赖
 ```pip install -r requirements.txt```
