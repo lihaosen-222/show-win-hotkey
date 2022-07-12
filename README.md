@@ -23,7 +23,7 @@
 ```pip install -r requirements.txt```
 
 ## 打包
-``` pyinstall -D index.py ```
+``` pyinstaller -D index.py ```
 
 ## 快捷键
 alt + shitf + 1-5 绑定当前最前的窗口
