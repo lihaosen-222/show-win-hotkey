@@ -8,7 +8,16 @@ import httpx
 import asyncio
 import json
 
-
+# 生成防抖函数
+def get_debounce_fn(fn, break_time):
+    ref = {'pre_time': 0}
+    def debounce_fn(*a):
+        now = time.time()
+        if now - ref['pre_time'] > break_time:
+            fn(*a)
+        ref['pre_time'] = now
+        
+    return debounce_fn
 
 # 注册异步请求
 async def set_win(win):
@@ -21,30 +30,17 @@ async def set_win(win):
         print(result)
 loop = asyncio.get_event_loop()
 
-# win 初始化
-win = [None]
-for i in range(1, 6):
-    win.append({'hwnd': '', 'name':''})
-
-# 生成防抖函数
-def get_debounce_fn(fn, break_time):
-    ref = {'pre_time': 0}
-    def debounce_fn(*a):
-        now = time.time()
-        if now - ref['pre_time'] > break_time:
-            fn(*a)
-        ref['pre_time'] = now
-        
-    return debounce_fn
-
 # alt_shift 回调函数
-def alt_shift(i):
+def alt_shift(win, i):
     win[i]['hwnd'] = win32gui.GetForegroundWindow()
     win[i]['name'] = win32gui.GetWindowText(win[i]['hwnd'])
     print('绑定', win[i]['name'])
 
+    # 异步执行请求
+    loop.run_until_complete(set_win(win))
+
 # alt 回调函数
-def alt(i):
+def alt(win, i):
     if(not win[i]['hwnd']): 
         return
 
@@ -59,15 +55,28 @@ def alt(i):
         win32gui.SetForegroundWindow(win[i]['hwnd']) # 没最小化的时候显示到最前
     print('显示', win[i]['name'] )
 
-    # 异步执行请求
-    loop.run_until_complete(set_win(win))
+# 生成防抖函数
+def get_debounce_fn(fn, break_time):
+    ref = {'pre_time': 0}
+    def debounce_fn(*a):
+        now = time.time()
+        if now - ref['pre_time'] > break_time:
+            fn(*a)
+        ref['pre_time'] = now
+        
+    return debounce_fn
 
-alt_throttle = get_debounce_fn(alt,0.1)
+# 生成 alt 回调的防抖函数
+alt_throttle = get_debounce_fn(alt, 0.1)
 
+# win 初始化， 注册事件
+win = [None]
 for i in range(1, 6):
-    keyboard.add_hotkey('alt+'+str(i), alt_throttle, (i,))
-    keyboard.add_hotkey('alt+shift+'+str(i), alt_shift, (i,))
+    win.append({'hwnd': '', 'name':''})
+    keyboard.add_hotkey('alt+'+str(i), alt_throttle, (win,i))
+    keyboard.add_hotkey('alt+shift+'+str(i), alt_shift, (win,i))
 
+# alt+shift+q 停止监听
 keyboard.wait('alt+shift+q')
 
 input('Press Enter to exit…')
