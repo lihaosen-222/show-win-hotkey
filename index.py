@@ -23,7 +23,7 @@ def get_debounce_fn(fn, break_time):
 async def set_win(win):
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            'http://localhost:3000/api/setWin',
+            'http://localhost:3006/api/setWin',
             data={'win': json.dumps(win)}  # 转 json
         )
         result = resp.text
