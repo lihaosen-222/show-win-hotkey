@@ -8,6 +8,8 @@ import httpx
 import asyncio
 import json
 
+host = 'http://81.68.226.188:8007'
+
 # 生成防抖函数
 def get_debounce_fn(fn, break_time):
     ref = {'pre_time': 0}
@@ -23,7 +25,7 @@ def get_debounce_fn(fn, break_time):
 async def set_win(win):
     async with httpx.AsyncClient() as client:
         resp = await client.post(
-            'http://localhost:3006/api/setWin',
+            host + '/api/setWin',
             data={'win': json.dumps(win)}  # 转 json
         )
         result = resp.text
