@@ -30,7 +30,8 @@ async def set_win(win):
         )
         result = resp.text
         print(result)
-loop = asyncio.get_event_loop()
+loop = asyncio.new_event_loop()
+# loop = asyncio.get_event_loop()
 
 # alt_shift 回调函数
 def alt_shift(win, i):
